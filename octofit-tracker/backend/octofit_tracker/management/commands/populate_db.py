@@ -1,15 +1,14 @@
+from django.core.management.base import BaseCommand
 from django.conf import settings
 from pymongo import MongoClient
 from bson import ObjectId
-from datetime import timedelta
-from django.core.management.base import BaseCommand
 
 class Command(BaseCommand):
     help = 'Populate the database with test data for users, teams, activities, leaderboard, and workouts'
 
     def handle(self, *args, **kwargs):
-        client = MongoClient(settings.MONGO_URI)
-        db = client[settings.MONGO_DB_NAME]
+        client = MongoClient(settings.DATABASES['default']['HOST'], settings.DATABASES['default']['PORT'])
+        db = client[settings.DATABASES['default']['NAME']]
 
         # Clear existing data
         db.users.delete_many({})
@@ -18,7 +17,7 @@ class Command(BaseCommand):
         db.leaderboard.delete_many({})
         db.workouts.delete_many({})
 
-        # Create users
+        # Create users with unique _id
         users = [
             {"_id": ObjectId(), "username": "thundergod", "email": "thundergod@mhigh.edu", "password": "thundergodpassword"},
             {"_id": ObjectId(), "username": "metalgeek", "email": "metalgeek@mhigh.edu", "password": "metalgeekpassword"},
@@ -37,11 +36,11 @@ class Command(BaseCommand):
 
         # Create activities with unique activity_id
         activities = [
-            {"_id": ObjectId(), "activity_id": ObjectId(), "user": users[0]["_id"], "activity_type": "Cycling", "duration": timedelta(hours=1).total_seconds()},
-            {"_id": ObjectId(), "activity_id": ObjectId(), "user": users[1]["_id"], "activity_type": "Crossfit", "duration": timedelta(hours=2).total_seconds()},
-            {"_id": ObjectId(), "activity_id": ObjectId(), "user": users[2]["_id"], "activity_type": "Running", "duration": timedelta(hours=1, minutes=30).total_seconds()},
-            {"_id": ObjectId(), "activity_id": ObjectId(), "user": users[3]["_id"], "activity_type": "Strength", "duration": timedelta(minutes=30).total_seconds()},
-            {"_id": ObjectId(), "activity_id": ObjectId(), "user": users[4]["_id"], "activity_type": "Swimming", "duration": timedelta(hours=1, minutes=15).total_seconds()},
+            {"_id": ObjectId(), "activity_id": ObjectId(), "user": users[0]["_id"], "activity_type": "Cycling", "duration": "01:00:00"},
+            {"_id": ObjectId(), "activity_id": ObjectId(), "user": users[1]["_id"], "activity_type": "Crossfit", "duration": "02:00:00"},
+            {"_id": ObjectId(), "activity_id": ObjectId(), "user": users[2]["_id"], "activity_type": "Running", "duration": "01:30:00"},
+            {"_id": ObjectId(), "activity_id": ObjectId(), "user": users[3]["_id"], "activity_type": "Strength", "duration": "00:30:00"},
+            {"_id": ObjectId(), "activity_id": ObjectId(), "user": users[4]["_id"], "activity_type": "Swimming", "duration": "01:15:00"},
         ]
         db.activity.insert_many(activities)
 
